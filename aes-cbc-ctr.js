@@ -29,13 +29,9 @@ var cbcIvDecrypt = function (key, ivCiphertext) {
     var decrypt = crypto.createDecipheriv('aes128', key, new Buffer(Array(16)));
     decrypt.setAutoPadding(false);
     var out = decrypt.update(block, 'hex');
-    console.log(out);
-    console.log(iv);
     var plainBlock = xor(iv, out);
-    console.log(plainBlock);
     iv = block;
     plaintext += plainBlock.toString('ascii');
-    console.log(plaintext);
   }
   console.log("CBC OUT:", plaintext);
 };
@@ -45,9 +41,20 @@ var ctrIvDecrypt = function (key, ivCiphertext) {
   var iv = new Buffer(ivCiphertext.slice(0, 32), 'hex');
   var ciphertext = new Buffer(ivCiphertext.slice(32), 'hex');
 
-  var d = crypto.createDecipheriv('aes-128-ctr', key, iv);
-  var plaintext = d.update(ciphertext, 'hex', 'utf8');
-  plaintext += d.final('utf8');
+  var plaintext = "";
+  for (var i = 0, block = ciphertext.slice(0, 16); block.length > 0; i+=16, block = ciphertext.slice(i, i+16)) {
+    var decrypt = crypto.createDecipheriv('aes128', key, new Buffer(Array(16)));
+    decrypt.setAutoPadding(false);
+    var out = decrypt.update(iv, 'hex');
+    console.log(out);
+    var plainBlock = xor(block, out);
+    console.log(plainBlock);
+    iv[3] = iv[3] + 1;
+    console.log(iv);
+    plaintext += plainBlock.toString('ascii');
+    console.log(plaintext);
+  }
+
   console.log("CTR OUT:", plaintext);
 };
 
